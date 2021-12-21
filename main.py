@@ -10,11 +10,14 @@ import speech_recognition as sr
 def transcriptWav(filename):
     r = sr.Recognizer()
     with sr.AudioFile(filename) as source:
-        # listen for the data (load audio to memory)
-        audio_data = r.record(source)
-        # recognize (convert from speech to text)
-        text = r.recognize_google(audio_data)
-        print(text)
+        try:
+            # listen for the data (load audio to memory)
+            audio_data = r.record(source)
+            # recognize (convert from speech to text)
+            text = r.recognize_google(audio_data)
+            print(text)
+        except:
+            print("Error !")
 
 
 def readRTTM(filename):
@@ -24,13 +27,15 @@ def readRTTM(filename):
             i = i + 1
             line = line.rstrip().split(' ')
             print(line)
-            t1 = float(line[3])  # Works in milliseconds
-            t2 = t1 + float(line[4])
+            t1 = float(line[3]) * 1000              # Works in milliseconds
+            t2 = t1 + float(line[4]) * 1000
+            if t2 - t1 < 500:
+                continue
             print(str(t1) + " to " + str(t2))
-            newNameameAudio = "track" + str(i) + ".wav"
-            newAudio = AudioSegment.from_wav("./data/track.wav")
+            newNameAudio = "Resources/Audio/Split/track" + str(i) + ".wav"
+            newAudio = AudioSegment.from_wav("Resources/Audio/track.wav")
             newAudio = newAudio[t1:t2]
-            newAudio.export(newNameameAudio, format="wav")  # Exports to a wav file in the current path.
+            newAudio.export(newNameAudio, format="wav")  # Exports to a wav file in the current path.
 
 
 def print_hi(name):
@@ -41,18 +46,19 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    filename = 'C:\\Users\\Micky\\PycharmProjects\\SharedRobotaxi\\data\\speaker_diarization.rttm'
+    filename = 'Resources/speaker_diarization.rttm'
     readRTTM(filename)
 
     # All files ending with .txt
-    list = glob.glob("C:\\Users\\Micky\\PycharmProjects\\SharedRobotaxi\\track*.wav")
+    list = glob.glob("Resources/Audio/Split/track*.wav")
 
     print(list)
 
-    transcriptWav("C:\\Users\\Micky\\PycharmProjects\\SharedRobotaxi\\data\\track.wav")
-    # for line in list:
-    #    transcriptWav(line)
-
+    #transcriptWav("Resource/Audio/track.wav")
+    for line in list:
+        print(line)
+        transcriptWav(line)
+    #transcriptWav("Resources/Audio/Split/track10.wav")
 
 
 
