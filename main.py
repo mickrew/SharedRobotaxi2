@@ -4,11 +4,24 @@ import os
 from pydub import AudioSegment
 import glob
 import speech_recognition as sr
+from scipy.io import wavfile
+
 import speech_detection as sd
+import time
+import noisereduce as nr
 
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+def noiseReduce(filename):
+    # load data
+    rate, data = wavfile.read(filename)
+    # perform noise reduction
+    rate = 44100
+    reduced_noise = nr.reduce_noise(y=data, sr=rate)
+    newName = "Resources/Audio/NoiseReduced/" + filename.split("\\")[1].replace(".wav", "") + "-reduced.wav"
+    reduced_noise.export(newName, format="wav")
+
 
 def transcriptWav(filename):
     r = sr.Recognizer()
@@ -19,10 +32,10 @@ def transcriptWav(filename):
             # listen for the data (load audio to memory)
             audio_data = r.record(source)
             # recognize (convert from speech to text)
-            text = r.recognize_google(audio_data)
+            text = r.recognize_google(audio_data,language="it-IT")
             print(text)
         except:
-            print("Error !")
+            print("Error ! \t" + filename.split('/')[3])
 
 def readRTTM(filename, fileAudio):
     i = -1
@@ -49,11 +62,22 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm Start')
-    listAudio = glob.glob("Resources/Audio/track*.wav")
+    listAudio = glob.glob("Resources/Audio/*.wav")
+    print(listAudio)
 
     for list in listAudio:
+        #noiseReduce(list)
+
         #transcriptWav(list)
+        start = time.time()
+        print(list)
+        newPath = "Resources/Audio/NoiseReduced/" + list.split("\\")[1].replace(".wav", "") + "-reduced.wav"
+        newPath1 = list
+        #print(newPath)
         sd.diarization(list)
+        end = time.time()
+        print ("\nDiarization: " + str(end-start)+"\n")
+
         readRTTM(list.replace('.wav', '.rttm'), list)
         listSplit = glob.glob("Resources/Audio/Split/track*.wav")
         for line in listSplit:
