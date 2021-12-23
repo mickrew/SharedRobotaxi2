@@ -9,6 +9,7 @@ from scipy.io import wavfile
 import speech_detection as sd
 import time
 import noisereduce as nr
+import speakerRecognition
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -65,6 +66,8 @@ if __name__ == '__main__':
     listAudio = glob.glob("Resources/Audio/*.wav")
     print(listAudio)
 
+
+
     for list in listAudio:
         #noiseReduce(list)
 
@@ -82,10 +85,11 @@ if __name__ == '__main__':
         listSplit = glob.glob("Resources/Audio/Split/track*.wav")
         for line in listSplit:
             transcriptWav(line)
+            speakerRecognition.task_predict(line, "model.out")
 
         for line in listSplit:
             os.remove(line)
-            os.remove(list.replace('.wav', '.rttm'))
+            #os.remove(list.replace('.wav', '.rttm'))
 
 
 
