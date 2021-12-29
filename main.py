@@ -1,4 +1,5 @@
 # This is a sample Python script.
+from datetime import datetime
 import os
 
 from pydub import AudioSegment
@@ -10,6 +11,8 @@ import speech_detection as sd
 import time
 import noisereduce as nr
 import speakerRecognition
+
+import MongoDBConnection as mongo
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -35,6 +38,7 @@ def transcriptWav(filename):
             # recognize (convert from speech to text)
             text = r.recognize_google(audio_data,language="it-IT")
             print(text)
+            return text
         except:
             print("Error ! \t" + filename.split('/')[3])
 
@@ -60,17 +64,18 @@ def print_hi(name):
     print(f'Start {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm Start')
     listAudio = glob.glob("Resources/Audio/*.wav")
     print(listAudio)
 
-
+    docList = []
 
     for list in listAudio:
         #noiseReduce(list)
-
+        docList.clear()
         #transcriptWav(list)
         start = time.time()
         print(list)
@@ -81,11 +86,21 @@ if __name__ == '__main__':
         end = time.time()
         print ("\nDiarization: " + str(end-start)+"\n")
 
+        text=''
+        author=''
+        timestamp=''
+
         readRTTM(list.replace('.wav', '.rttm'), list)
         listSplit = glob.glob("Resources/Audio/Split/track*.wav")
         for line in listSplit:
-            transcriptWav(line)
-            speakerRecognition.task_predict(line, "model.out")
+            text = transcriptWav(line)
+            author = speakerRecognition.task_predict(line, "model.out")
+            now = datetime.now()
+            timestamp = now.strftime("%Y/%m/%d %H:%M:%S")
+            doc = {"author": author, "transcription": text, "timestap": datetime.strptime(timestamp, '%Y/%m/%d %H:%M:%S')}
+            docList.append(doc)
+
+        mongo.insertMongoTranscription(docList)
 
         for line in listSplit:
             os.remove(line)

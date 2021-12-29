@@ -72,6 +72,7 @@ def task_predict(input_files, input_model):
         fs, signal = read_wav(f)
         label, score = m.predict(fs, signal)
         print (f, '->', label, ", score->", score)
+        return label
 
 
 '''
