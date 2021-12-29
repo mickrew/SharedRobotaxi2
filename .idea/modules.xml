@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SharedRobotaxi2.iml" filepath="$PROJECT_DIR$/.idea/SharedRobotaxi2.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../SharedRobotaxiGUI/.idea/SharedRobotaxiGUI.iml" filepath="$PROJECT_DIR$/../SharedRobotaxiGUI/.idea/SharedRobotaxiGUI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SharedRobotaxiGUI/.idea/SharedRobotaxiGUI.iml" filepath="$PROJECT_DIR$/SharedRobotaxiGUI/.idea/SharedRobotaxiGUI.iml" />
     </modules>
   </component>
 </project>
