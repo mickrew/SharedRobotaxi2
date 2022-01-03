@@ -1,2 +1,2 @@
-/Resources/Audio/
-/SpeakerIdentification/
+*.wav
+*.out
