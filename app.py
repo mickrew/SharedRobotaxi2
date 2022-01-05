@@ -9,6 +9,8 @@ from flask import Flask, render_template, request, jsonify
 import json
 from flask_sock import Sock
 from numpy import int16
+from pydub import AudioSegment
+from scipy.io import wavfile
 
 import audioProcessing
 from audioCapture.record import record_samples, record
@@ -16,7 +18,9 @@ from audioCapture.stream import stream_audio
 from audioCapture.utils import save_wav
 from audioProcessing.diarization import speaker_activity_detection, speaker_change_detection
 from audioProcessing.speaker_recognition import enroll, batch_predict, live_predict
+from audioProcessing.transcription import local_speech2text
 from audioProcessing.utils import read_rttm, split_track
+from database import MongoDBConnection
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -98,24 +102,105 @@ def stop():
     pass
 
 
+
 def callback(in_data, frame_count, time_info, flag):
     #live_predict(44100, numpy.frombuffer(buffer=in_data, dtype=int16), 'm.out')
     return None, pyaudio.paContinue
 
+def crossDiarizationSpeech():
+    #res = open('test/res2.json')
+    #transcription = open('output.json')
+    #res = json.load(res)
+    ##################
+    print("SAD DIHARD")
+    rttm = speaker_activity_detection('Conversation-02', 'dihard')
+    split_track('test/Conversation-02', rttm)
+    res = (batch_predict(glob.glob('test/split/*.wav'), rttm, 'model.out'))
+    transcription = json.loads(local_speech2text('test/Conversation-02'))
+    #################
+    #transcription = json.load(transcription)
 
-def run():
-    #print("SAD DIHARD")
-    rttm = speaker_activity_detection('dialog2', 'dihard')
-    split_track('test/dialog2', rttm)
-    res = batch_predict(glob.glob('test/split/*.wav'), rttm, 'model.out')
+    #timestamp = nameFileTimestamp
+    timestamp = 0.0 #long(timestamp)
+    listWords = transcription['result']
 
-    json.dump(res, open('test/res2.json', 'w'))
-    res = json.load(open('test/res2.json', 'r'))
-    for p in res:
-        print(p['track'], p['label'], '\t', p['start'], p['end'])
+    listUsers = []
+    #nomeuntente1
+        #text, timestamp
+        #text , timestamp
+    listPeriods = []
+
+    endPeriodPointer = 0.0
+    phrase = ""
+
+    sizeDiarization = len(res)
+    counterDiarization = 0
+
+    sizeWords = len(listWords)
+    counterWords = 0
+
+    for diarizationDocument in res:
+        label = diarizationDocument['label']
+        indexuser = 0
+        try:
+            indexUser = listUsers.index(label)
+        except:
+            listUsers.append(label)
+            listPeriods.append([])
+            indexUser = listUsers.index(label)
+
+        startPeriodPointer = endPeriodPointer
+        endPeriodPointer = float(diarizationDocument['end'])
+
+        for i in range(counterWords, len(listWords)):
+            word = listWords[i]
+            counterWords+=1
+            if (float(word['end']) <= endPeriodPointer and float(word['end']) >= startPeriodPointer):
+                phrase = phrase + str(word['word']) + " "
+            elif (float(word['end']) >= endPeriodPointer):
+                break
+        if (counterDiarization<sizeDiarization-1):
+            if(res[counterDiarization+1]['label']==label):
+                counterDiarization += 1
+                continue
+            else:
+                timestampPhrase = timestamp + endPeriodPointer
+                doc = [phrase, timestampPhrase]
+                listPeriods[indexUser].append(doc)
+                phrase = ""
+                counterDiarization+=1
+    listPeriods.append(listUsers)
+    return listPeriods
 
 
 if __name__ == '__main__':
     #app.run()
-    run()
+
+    timeStart = time.time()
+    enroll('model.out')
+    timeEnroll = time.time() - timeStart
+    print("Time to enroll Model: " + str(round(timeEnroll,2)))
+
+    MongoDBConnection.insertUser(["Michelangelo", "Martorana"])
+    MongoDBConnection.insertUser(["Federico", "Cristofani"])
+
+    timeStart = time.time()
+    results = crossDiarizationSpeech()
+    timeCrossDiarizationSpeech = time.time() - timeStart
+    print("Time to cross Diarization and speech data: " + str(round(timeCrossDiarizationSpeech, 2)))
+
+    MongoDBConnection.insertTranscription(results)
+    listConversation = MongoDBConnection.getConversations(["Michelangelo", "Martorana"])
+    print("Michelangelo Martorana")
+    for i in listConversation:
+        print(i)
+    listConversation = MongoDBConnection.getConversations(["Federico", "Cristofani"])
+    print("Federico Cristofani")
+    for i in listConversation:
+        print(i)
+    #sound = AudioSegment.from_wav('test/Conversation-02.wav')
+    #sound = sound.set_channels(1)
+    #sound.export('test/Conversation-02.wav', format="wav")
+    #local_speech2text('test/Conversation-02')
+
 

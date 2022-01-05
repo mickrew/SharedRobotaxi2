@@ -19,7 +19,7 @@ def enroll(output_model):
 
     for user in user_dirs:
         print(user)
-        label = json.load(open(base_user_dir + user + '/' + user + '.json'))['fname']
+        label = user #json.load(open(base_user_dir + user + '/' + user + '.json'))['fname']
         samples = glob.glob(base_user_dir + user + '/*.wav')
         if len(samples) == 0:
             print(f"No wav file found for {user}")
@@ -44,7 +44,6 @@ def batch_predict(input_files, rttm, input_model):
         fs, signal = read_wav(f)
         label, score = model.predict(fs, signal)
         prediction.append({'track': f, 'label': label, 'score': score, 'start': rttm[i]['start'], 'end': rttm[i]['end']})
-
     return prediction
 
 

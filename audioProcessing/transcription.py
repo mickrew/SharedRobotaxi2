@@ -1,3 +1,5 @@
+import json
+
 import speech_recognition as sr
 from vosk import Model, KaldiRecognizer, SetLogLevel
 import wave
@@ -40,9 +42,11 @@ def local_speech2text(track):
                 break
             rec.AcceptWaveform(data)
 
-        with open('output.json', 'w', encoding='utf-8') as out:
-            out.write(rec.FinalResult())
-            print("speech2text complete")
+        return (rec.FinalResult())
+
+        #with open('output.json', 'w', encoding='utf-8') as out:
+        #    out.write(rec.FinalResult())
+        #    print("speech2text complete")
 
 ''' https://alphacephei.com/vosk/models '''
 
