@@ -1,0 +1,49 @@
+#form{
+    display: flex;
+    padding: 10px;
+    flex-direction: column;
+    align-items: center;
+    border: solid 1px whitesmoke;
+    border-radius: 5px;
+    background-color: rgba(255,255,255,0.25);
+    width: 75%;
+}
+
+.title{
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.textbox{
+    width: 75%;
+    margin: 10px;
+    padding: 5px;
+    text-align: center;
+    border: solid 1px black;
+    border-radius: 5px;
+}
+
+#sample_picker{
+    display: none;
+}
+
+#button_area{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100% ;
+}
+
+.button{
+    width: 75%;
+    padding: 10px;
+    margin: 5px;
+    border: solid 1px black;
+    border-radius: 25px;
+    font-weight: bold;
+}
+
+.button:hover{
+    cursor: pointer;
+}

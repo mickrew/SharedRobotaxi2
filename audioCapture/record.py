@@ -3,9 +3,10 @@ from .param import sample_format, sample_rate, channel, chunk_size, dev_index
 from .utils import save_wav
 
 sample_record_duration = 60
+UNTIL_STOP = -1
 
 
-def record(duration):
+def record(duration, button=None):
     audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
     # create pyaudio stream
@@ -17,18 +18,20 @@ def record(duration):
                         frames_per_buffer=chunk_size
                         )
 
-    print("start recording")
+    print("Start recording")
 
     frames = []
+    if duration == UNTIL_STOP:
+        while not button.is_pressed:
+            data = stream.read(chunk_size, exception_on_overflow=False)
+            frames.append(data)
+    else:
+        for ii in range(0, int((sample_rate / chunk_size) * duration)):
+            data = stream.read(chunk_size, exception_on_overflow=False)
+            frames.append(data)
 
-    # loop through stream and append audioCapture chunks to frame array
-    for ii in range(0, int((sample_rate / chunk_size) * duration)):
-        data = stream.read(chunk_size, exception_on_overflow=False)
-        frames.append(data)
+    print("Stop recording")
 
-    print("stop recording")
-
-    # stop the stream, close it, and terminate the pyaudio instantiation
     stream.stop_stream()
     stream.close()
     audio.terminate()
@@ -38,7 +41,6 @@ def record(duration):
 
 def record_samples(user):
     frames = record(sample_record_duration)
-    # save_wav(f'users/{user}/sample', frames)
 
     n_samples = 10
     step = int(len(frames) / n_samples)

@@ -1,0 +1,24 @@
+.user{
+    margin: 5px;
+    border: solid 1px black;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+    font-size: 22px;
+}
+
+.user_icon{
+    margin: 10px;
+    height: 245px;
+    max-height: 95%;
+}
+
+.user_info{
+    padding: 15px;
+}
+
+.user_info li{
+    padding: 10px;
+}

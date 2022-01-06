@@ -1,0 +1,35 @@
+#content{
+    display: flex;
+    flex-direction: column;
+
+}
+
+#current_user{
+    display: flex;
+    position: sticky;
+    top: 0;
+    justify-content: center;
+    height: 25%;
+    width: 100%;
+    background: whitesmoke;
+}
+
+#phrases{
+    margin: 25px;
+    border-radius: 20px;
+    overflow-y: scroll;
+}
+
+#phrases hr{
+    border: none;
+    border-bottom: dashed 1px black;
+}
+
+#phrases::-webkit-scrollbar{
+  display: none;
+}
+
+.phrase{
+    margin: 10px;
+    font-size: 22px;
+}

@@ -1,0 +1,53 @@
+html, body{
+    margin: 0;
+    background: whitesmoke;
+    overflow: hidden;
+}
+
+#container{
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+}
+
+#menu{
+    padding: 0;
+    margin: 0;
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background:#27313e;
+}
+
+#content{
+    height: 100%;
+    width: 80%;
+}
+
+#timer{
+    display: flex;
+    width: 100%;
+}
+
+#countdown{
+    padding: 15px;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+#bar{
+    text-align: left;
+    width: 80%;
+    margin: 25px;
+    background-color: lightgray;
+}
+
+#sample_text{
+    line-height: 150%;
+    margin: 25px;
+    padding: 10px;
+    font-size: 28px;
+    background-color: rgba(0,0,0,0.25);
+    border-radius: 10px;
+}
