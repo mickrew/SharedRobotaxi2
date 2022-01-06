@@ -1,11 +1,13 @@
 import json
 
 import speech_recognition as sr
+from pydub import AudioSegment
 from vosk import Model, KaldiRecognizer, SetLogLevel
 import wave
 
-base_dir = 'resources/model/'
-
+model_dir = 'root/resources/model/'
+test_dir = 'root/test/'
+run_dir = 'root/run/'
 
 def google_speech2text(filename):
     r = sr.Recognizer()
@@ -24,15 +26,16 @@ def google_speech2text(filename):
 
 def local_speech2text(track):
     SetLogLevel(level=-1)
+    audio = AudioSegment.from_wav(f'{run_dir}{track}.wav')
+    audio = audio.set_channels(1)
+    audio.export(f'{run_dir}{track}.wav', format='wav')
 
-    with wave.open(f'{track}.wav', "rb") as wf:
+    with wave.open(f'{run_dir}{track}.wav', "rb") as wf:
         if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
             print("Audio file must be WAV format mono PCM.")
             exit(1)
 
-        print("speech2text running")
-
-        model = Model(base_dir + "speech2text_ita")
+        model = Model(model_dir + "speech2text_ita")
         rec = KaldiRecognizer(model, wf.getframerate())
         rec.SetWords(True)
 
@@ -42,11 +45,7 @@ def local_speech2text(track):
                 break
             rec.AcceptWaveform(data)
 
-        return (rec.FinalResult())
-
-        #with open('output.json', 'w', encoding='utf-8') as out:
-        #    out.write(rec.FinalResult())
-        #    print("speech2text complete")
+        return json.loads(rec.FinalResult())
 
 ''' https://alphacephei.com/vosk/models '''
 

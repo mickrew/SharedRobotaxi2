@@ -22,8 +22,8 @@ def update_sr_model(user, model_name):
 def audio_processing_pipeline(track_name, diar_model, sr_model):
     session = FTP('DELL-8565U')
     session.login()
-    with open('run/dialog1.wav', 'rb') as file:
-        session.storbinary(f'STOR {track_name}', file)
+    with open(f'run/{track_name}.wav', 'rb') as file:
+        session.storbinary(f'STOR run/{track_name}.wav', file)
     session.quit()
     with xmlrpc.client.ServerProxy("http://DELL-8565U:8000/") as proxy:
         result = proxy.audio_processing_pipeline(track_name, diar_model, sr_model)

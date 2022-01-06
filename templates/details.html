@@ -25,9 +25,9 @@
                 {% for phrase in detail['phrases'] %}
                     <li>
                         <div class="phrase">
-                            <span><b>Timestamp: </b>{{ phrase.timestamp }}</span>
+                            <span><b>Timestamp: </b>{{ phrase[1] }}</span>
                             <br>
-                            <span><b>Text: </b>{{ phrase.text }}</span>
+                            <span><b>Text: </b>{{ phrase[0] }}</span>
                         </div>
                     </li>
                     <hr>

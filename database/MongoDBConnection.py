@@ -43,7 +43,9 @@ def loadAllUsers():
     for document in cursor:
         fname = document['fname']
         lname = document['lname']
-        user = [fname, lname]
+        transcriptions = document['transcriptions']
+        lastActivity = transcriptions[-1]['timestamp']
+        user = [fname, lname, lastActivity]
         listUsers.append(user)
     return listUsers
 
@@ -53,6 +55,8 @@ def getConversations(user):
     collection = db.Users
 
     document = collection.find_one({"fname": user[0], "lname": user[1]})
+    if document is None:
+        return []
     transcriptions = document['transcriptions']
     listTranscriptions = []
     for doc in transcriptions:

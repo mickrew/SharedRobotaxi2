@@ -17,7 +17,7 @@
         <section id="content">
             {% for user in users %}
                 {% with u = user %}
-                    <a href="/details?user={{ u.fname + '_' + u.lname }}">{% include 'components/user.html' %}</a>
+                    <a href="/details?fname={{ u[0] }}&lname={{ u[1] }}&lastActivity={{ u[2] }}">{% include 'components/user.html' %}</a>
                 {%  endwith %}
             {% endfor %}
         </section>

@@ -5,12 +5,12 @@ import os
 from .utils import read_wav
 from .interface import ModelInterface
 
-model_dir = 'resources/model/speaker_recognition/'
+model_dir = 'root/resources/model/speaker_recognition/'
 
 
 def enroll(output_model):
     model = ModelInterface()
-    base_user_dir = 'resources/users/'
+    base_user_dir = 'root/resources/users/'
     user_dirs = os.listdir(base_user_dir)
 
     if len(user_dirs) == 0:
@@ -19,7 +19,7 @@ def enroll(output_model):
 
     for user in user_dirs:
         print(user)
-        label = user #json.load(open(base_user_dir + user + '/' + user + '.json'))['fname']
+        label = user
         samples = glob.glob(base_user_dir + user + '/*.wav')
         if len(samples) == 0:
             print(f"No wav file found for {user}")
@@ -44,6 +44,7 @@ def batch_predict(input_files, rttm, input_model):
         fs, signal = read_wav(f)
         label, score = model.predict(fs, signal)
         prediction.append({'track': f, 'label': label, 'score': score, 'start': rttm[i]['start'], 'end': rttm[i]['end']})
+
     return prediction
 
 
