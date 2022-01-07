@@ -19,7 +19,13 @@
     border-radius: 20px;
     overflow-y: scroll;
 }
+#phrases h1{
+    display: block;
+    text-align: center;
+    font-size: 48px;
+    margin-top: 20%;
 
+}
 #phrases hr{
     border: none;
     border-bottom: dashed 1px black;

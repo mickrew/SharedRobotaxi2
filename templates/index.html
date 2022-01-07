@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <link type="text/css" rel="stylesheet" href="/static/style/template.css">
-    <link type="text/css" rel="stylesheet" href="/static/style/index.css">
+    <link type="text/css" rel="stylesheet" href="/static/style/user.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/static/scripts/app.js"></script>
     <title>Shared Robotaxi</title>
 </head>
 
@@ -15,9 +16,11 @@
             {% include 'components/menu.html' %}
         </aside>
         <section id="content">
+            <link type="text/css" rel="stylesheet" href="/static/style/index.css">
+            <link type="text/css" rel="stylesheet" href="/static/style/user.css">
             {% for user in users %}
                 {% with u = user %}
-                    <a href="/details?fname={{ u[0] }}&lname={{ u[1] }}&lastActivity={{ u[2] }}">{% include 'components/user.html' %}</a>
+                    {% include 'components/user.html' %}
                 {%  endwith %}
             {% endfor %}
         </section>

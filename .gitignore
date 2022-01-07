@@ -1,4 +1,8 @@
 run/
 resources/users/
+AudioProcessingServer/
+AudioProcessingServer/root/
+AudioProcessingServer/root/resources/
+AudioProcessingServer/root/resources/model/
 *.wav
 *.out

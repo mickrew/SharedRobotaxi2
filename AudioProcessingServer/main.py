@@ -25,4 +25,3 @@ rpc_server.register_function(update_model, 'update_model')
 if __name__ == '__main__':
     threading.Thread(target=ftp_server.serve_forever).start()
     threading.Thread(target=rpc_server.serve_forever).start()
-

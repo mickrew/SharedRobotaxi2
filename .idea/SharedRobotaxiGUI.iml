@@ -12,13 +12,18 @@
       <excludeFolder url="file://$MODULE_DIR$/resources/model/speech2text_ita/am" />
       <excludeFolder url="file://$MODULE_DIR$/test/split" />
       <excludeFolder url="file://$MODULE_DIR$/run" />
+      <excludeFolder url="file://$MODULE_DIR$/AudioProcessingServer/root/resources/model/speech2text_ita/am" />
+      <excludeFolder url="file://$MODULE_DIR$/AudioProcessingServer/root/resources/users" />
+      <excludeFolder url="file://$MODULE_DIR$/AudioProcessingServer/root/run" />
+      <excludeFolder url="file://$MODULE_DIR$/resources/users" />
+      <excludeFolder url="file://$MODULE_DIR$/AudioProcessingServer/root/resources/model" />
+      <excludeFolder url="file://$MODULE_DIR$/AudioProcessingServer/root" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (SharedRobotaxi)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="bootstrap" level="application" />
     <orderEntry type="library" name="jquery" level="application" />
     <orderEntry type="library" name="socket.io" level="application" />
-    <orderEntry type="module" module-name="AudioProcessingServer" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="renderExternalDocumentation" value="true" />

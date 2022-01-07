@@ -1,31 +1,9 @@
 
 $(document).ready(function(){
-    $('#enroll').click(enroll);
     $('#upload').click(select_samples);
     $('#sample_picker').change(upload_samples);
-    $('#record').click(record_samples);
-
+    $('#record').click(get_text);
 });
-
-function enroll() {
-    let formData = new FormData();
-    formData.append('fname', $('#fname').val())
-    formData.append('lname', $('#lname').val())
-
-    $.ajax({
-        url: '/enroll',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (data) {
-            alert("Success: " + data['msg'])
-        },
-        error: function (data){
-            alert("Error: " + data['responseJSON']['msg'])
-        }
-    });
-}
 
 function select_samples(){
     $('#sample_picker').click();
@@ -33,12 +11,19 @@ function select_samples(){
 
 function upload_samples(){
     let formData = new FormData();
-    formData.append('fname', $('#fname').val())
-    formData.append('lname', $('#lname').val())
+    fname = $('#fname').val();
+    lname = $('#lname').val();
+
+    if(fname === '' ||  lname === ''){
+        alert("Insert name and surname !")
+        return
+    }
+    formData.append('fname', fname)
+    formData.append('lname', lname)
+
     let samples = $("#sample_picker")[0].files
 
     for (let t of samples) {
-        console.log(t.name)
         formData.append(t.name, t)
     }
 
@@ -49,17 +34,75 @@ function upload_samples(){
         processData: false,
         contentType: false,
         success: function (data) {
-            alert("Success: " + data['msg'])
+             $('#status').text("Ready")
+            addUser($('#fname').val(),$('#lname').val());
+            alert("User registered successfully !");
         },
         error: function (data){
-            alert("Error: " + data['responseJSON']['msg'])
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
         }
     });
+    $('#status').text("Uploading files")
+}
 
+function get_text(){
+    let fname = $('#fname').val();
+    let lname = $('#lname').val();
+
+
+    if(fname === '' ||  lname === ''){
+        alert("Insert name and surname !")
+        return
+    }
+
+    $.ajax({
+        url: '/text?fname=' + fname + '&lname=' + lname,
+        type: 'GET',
+        processData: false,
+        contentType: false,
+        success: function (data) {
+            $('#content').html(
+                '<div id="timer"><div id="bar"><span id="countdown">60</span></div></div><div id="button_container"><button id="start_recording">Start</button></div><div id="sample_text">'
+                                + data['text'] + '</div>'
+            )
+            $('#start_recording').click(start_recording);
+        },
+                error: function (data){
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
+        }
+    });
+}
+
+function start_recording(){
+    let formData = new FormData();
+    fname = $('#fname').val()
+    lname = $('#lname').val()
+    formData.append('fname',fname)
+    formData.append('lname',  lname)
+
+    $.ajax({
+        url: '/record_samples',
+        type: 'POST',
+        processData: false,
+        contentType: false,
+        data: formData,
+        success: function (data) {
+             show_users()
+             $('#status').text("Ready")
+             alert("User registered successfully !");
+        },
+        error: function (data){
+            clearInterval(countdown)
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
+        }
+    });
+    countdown = setInterval(countdown_handler, 1000)
 }
 
 let countdown;
-
 function countdown_handler(){
     let count = $('#countdown')
     let bar = $('#bar')
@@ -70,73 +113,22 @@ function countdown_handler(){
         bar.css('width',(current-1) / 0.75  + '%');
     }
     else{
-        clearInterval()
+        clearInterval(countdown)
     }
 }
 
-function record_samples(){
-    let socket = new WebSocket('ws://raspberrypi:5000/record_samples');
-    socket.onerror = function (event){console.log(event)}
-    socket.onmessage = function (event){
-        let response = JSON.parse(event.data)
-        switch (response['action']){
-            case 'start':
-                console.log(response['action']);
-                countdown = setInterval(countdown_handler, 1000)
-                $('#content').html(
-                    '<div id="timer"><div id="bar"><span id="countdown">60</span></div></div><div id="sample_text">'
-                                + response['text'] + '</div>'
-                )
-                break;
-            case 'stop':
-                alert("Success: users registered !")
-                window.location.href = '/'
-                break;
-            case 'already enrolled':
-                alert('Error: user already enrolled')
-        }
-    }
-    socket.onopen = function (){
-        socket.send(JSON.stringify({fname: $('#fname').val(), lname: $('#lname').val(), command:'start'}))
-    }
-    socket.onclose = function (){console.log("ws closed")}
+function addUser(fname, lname){
+    let content = $('#content')
+    let id = fname.charAt(0).toUpperCase() + fname.slice(1)+  '_' + lname.charAt(0).toUpperCase() + lname.slice(1)
+    content.append(
+        '   <div id="'+  id + '" class="user">' +
+        '       <img class="user_icon" src="../static/images/man_icon.png" alt="user"/>' +
+        '       <ul class="user_info">' +
+        '           <li><span><b>Name: </b><i>' + fname.charAt(0).toUpperCase() + fname.slice(1) + '</i></span></li>' +
+        '           <li><span><b>Surname: </b><i>' + lname.charAt(0).toUpperCase() + lname.slice(1) + '</i></span></li>' +
+        '           <li><span><b>Last activity: </b><i class="last_activity">None</i></span></li>' +
+        '       </ul>' +
+        '   </div>'
+    )
+    $('#' + id).click(show_detail)
 }
-
-/*let recorder;
-let audio_stream;
-
-function startRecording() {
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (stream) {
-            audio_stream = stream;
-            recorder = new MediaRecorder(stream);
-
-            recorder.ondataavailable = function (e) {
-                const blobDataInWebaFormat = e.data; // .weba = webaudio; subset of webm
-                const wavFile = new Blob([blobDataInWebaFormat], { type : 'audio/wav; codecs=ms_pcm' });
-
-                let formData = new FormData();
-                formData.append("track", wavFile)
-                formData.append("fname", "pippo");
-                formData.append("lname", "pippo");
-                $.ajax({
-                    url: "/enroll",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                });
-            };
-            console.log("Record started")
-            recorder.start();
-        });
-}
-
-function stopRecording() {
-    recorder.stop();
-    audio_stream.getAudioTracks()[0].stop();
-
-    console.log("Record stopped");
-}
-*/

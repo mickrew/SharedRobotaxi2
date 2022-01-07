@@ -1,0 +1,6 @@
+<link type="text/css" rel="stylesheet" href="/static/style/index.css">
+{% for user in users %}
+    {% with u = user %}
+        {% include 'components/user.html' %}
+    {%  endwith %}
+{% endfor %}

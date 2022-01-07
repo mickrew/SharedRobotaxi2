@@ -7,9 +7,9 @@ UNTIL_STOP = -1
 
 
 def record(duration, button=None):
+    # create pyaudio stream
     audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
-    # create pyaudio stream
     stream = audio.open(format=sample_format,
                         rate=sample_rate,
                         channels=channel,

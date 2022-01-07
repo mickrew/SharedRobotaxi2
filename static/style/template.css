@@ -23,6 +23,7 @@ html, body{
 #content{
     height: 100%;
     width: 80%;
+    overflow-y: scroll;
 }
 
 #timer{
@@ -41,6 +42,7 @@ html, body{
     width: 80%;
     margin: 25px;
     background-color: lightgray;
+    border-radius: 0 10px 10px 0;
 }
 
 #sample_text{
@@ -50,4 +52,22 @@ html, body{
     font-size: 28px;
     background-color: rgba(0,0,0,0.25);
     border-radius: 10px;
+}
+
+#button_container{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#start_recording{
+    width: 25%;
+    padding: 15px;
+    border-radius: 10px;
+    background: grey;
+    color: white;
+    border: none;
+    font-weight: bold;
+    font-size: 22px;
+    cursor: pointer;
 }

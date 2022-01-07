@@ -6,12 +6,14 @@ from datetime import datetime
 from pprint import pprint
 connection_url = "mongodb+srv://Industrial:Application@sharedrobotaxi.gnvax.mongodb.net/SharedRobotaxi?retryWrites=true&w=majority"
 
+
 def insertUser(user):
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
     collection = db.Users
     doc = {"fname": user[0], "lname": user[1]}
     collection.insert_one(doc)
+
 
 def insertTranscription(docList):
     indexListUsers = len(docList)-1
@@ -34,6 +36,7 @@ def insertTranscription(docList):
             #listDocuments.append(doc)
             collection.update_one({'fname': fname, 'lname': lname}, {'$push': {'transcriptions': doc}}) #collection.update_many({'fname': fname, 'lname': lname}, {'$push': {'transcriptions': listDocuments}})
 
+
 def loadAllUsers():
     listUsers = []
     client = pymongo.MongoClient(connection_url)
@@ -43,34 +46,31 @@ def loadAllUsers():
     for document in cursor:
         fname = document['fname']
         lname = document['lname']
-        transcriptions = document['transcriptions']
-        lastActivity = transcriptions[-1]['timestamp']
+        try:
+            transcriptions = document['transcriptions']
+            lastActivity = transcriptions[-1]['timestamp']
+        except:
+            lastActivity = None
         user = [fname, lname, lastActivity]
         listUsers.append(user)
     return listUsers
+
 
 def getConversations(user):
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
     collection = db.Users
 
-    document = collection.find_one({"fname": user[0], "lname": user[1]})
-    if document is None:
+    try:
+        document = collection.find_one({"fname": user[0], "lname": user[1]})
+        transcriptions = document['transcriptions']
+    except:
         return []
-    transcriptions = document['transcriptions']
+
     listTranscriptions = []
     for doc in transcriptions:
         listTranscriptions.append([doc['text'],doc['timestamp']])
     return listTranscriptions
-
-#### NO ###
-def printAllTranscription():
-    client = pymongo.MongoClient(connection_url)
-    db = client.SharedRobotaxi
-    collection = db.Conversations
-    cursor = collection.find({})
-    for document in cursor:
-        print(document)
 
 '''
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string

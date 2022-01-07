@@ -1,11 +1,9 @@
-<link type="text/css" rel="stylesheet" href="/static/style/user.css">
-
-<div class="user">
+<div id="{{ u[0] }}_{{ u[1] }}" class="user">
     <img class="user_icon" src="../static/images/man_icon.png" alt="user"/>
     <ul class="user_info">
         <li><span><b>Name: </b><i>{{ u[0] }}</i></span></li>
-        <li><span><b>Surname: </b><i>{{ u[1]}}</i></span></li>
-        <li><span><b>Last activity: </b><i>{{ u[2] }}</i></span></li>
+        <li><span><b>Surname: </b><i>{{ u[1] }}</i></span></li>
+        <li><span><b>Last activity: </b><i  class="last_activity">{{ u[2] }}</i></span></li>
     </ul>
 </div>
 
