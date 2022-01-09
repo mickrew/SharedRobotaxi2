@@ -6,7 +6,10 @@ socket.onmessage = function (event){
         if(data['status'] === 'update'){
             for(const update of data['update']){
                 if($('#current_user').children()[0] === undefined){
-                    $('#' + update['user']).css('background-color', 'lightsteelblue')
+                    if(update['phrases'].length > 0){
+                        $('#' + update['user']).css('background-color', 'lightsteelblue')
+                        $('#' + update['user']).find('.last_activity').text(update['phrases'].at(-1)[1].toString().substring(0,10))
+                    }
                 }
                 else{
                     let current_user = $('#current_user').find('.user').attr('id')

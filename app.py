@@ -201,6 +201,7 @@ def start_recording():
 
 def crossDiarizationSpeech(track):
     result = audio_processing_pipeline(track, 'dihard', 'model.out')
+
     res = result['diarization']
     transcription = result['text']
 
@@ -237,10 +238,13 @@ def crossDiarizationSpeech(track):
             counterWords += 1
             if float(word['start']) <= endPeriodPointer and float(word['start']) >= startPeriodPointer:
                 phrase = phrase + str(word['word']) + " "
+                print(phrase)
             elif float(word['start']) >= endPeriodPointer:
+                counterWords-=1
                 break
+
         if counterDiarization < sizeDiarization - 1:
-            if res[counterDiarization + 1]['label'] == label:
+            if (res[counterDiarization + 1]['label'] == label):
                 counterDiarization += 1
                 continue
             else:
@@ -252,7 +256,18 @@ def crossDiarizationSpeech(track):
                 listPeriods[indexUser].append(doc)
                 phrase = ""
                 counterDiarization += 1
+        else:
+            if phrase == "":
+                counterDiarization += 1
+                continue
+            timestampPhrase = timestamp + endPeriodPointer
+            doc = [phrase, timestampPhrase]
+            listPeriods[indexUser].append(doc)
+            phrase = ""
+            counterDiarization += 1
+
     listPeriods.append(listUsers)
+
     return listPeriods
 
 
