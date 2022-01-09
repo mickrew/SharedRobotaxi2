@@ -6,7 +6,7 @@ sample_record_duration = 60
 UNTIL_STOP = -1
 
 
-def record(duration, button=None):
+def record(duration, status_queue, button=None):
     # create pyaudio stream
     audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
@@ -19,7 +19,7 @@ def record(duration, button=None):
                         )
 
     print("Start recording")
-
+    status_queue.put('{"status": "Recording"}')
     frames = []
     if duration == UNTIL_STOP:
         while not button.is_pressed:
@@ -39,8 +39,8 @@ def record(duration, button=None):
     return frames
 
 
-def record_samples(user):
-    frames = record(sample_record_duration)
+def record_samples(user, status_queue):
+    frames = record(sample_record_duration, status_queue)
 
     n_samples = 10
     step = int(len(frames) / n_samples)

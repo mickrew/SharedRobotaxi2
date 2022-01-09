@@ -24,6 +24,7 @@ split_dir = run_dir + 'split/'
 base_user_dir = 'resources/users/'
 
 button = Button(pin=2)
+status_queue = queue.Queue()
 
 
 @app.errorhandler(404)
@@ -87,10 +88,6 @@ def upload_samples():
     fname = request.form.get('fname').capitalize()
     lname = request.form.get('lname').capitalize()
 
-    msg, code = register(fname, lname)
-    if code != 200:
-        return msg, code
-
     samples = []
     for file in request.files.lists():
         sample = file[1][0]
@@ -104,6 +101,10 @@ def upload_samples():
     if len(samples) < 5:
         msg = 'Required at least 5 audio samples'
         return jsonify({'msg': msg}), 406
+
+    msg, code = register(fname, lname)
+    if code != 200:
+        return msg, code
 
     user_dir = f'{base_user_dir}{fname}_{lname}'
     for i, sample in enumerate(samples):
@@ -137,11 +138,13 @@ def record_sample():
     msg, code = register(fname, lname)
     if code != 200:
         return msg, code
-    status_queue.put('{"status": "Recording"}')
-    record_samples(fname + '_' + lname)
+
+    record_samples(fname + '_' + lname, status_queue)
+
     status_queue.put('{"status": "Updating model"}')
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
+
     msg = "Sample recorded !"
     return jsonify({"msg": msg}), 200
 
@@ -164,9 +167,6 @@ def get_detail():
     return render_template('details.html', detail=detail)
 
 
-status_queue = queue.Queue()
-
-
 @sock.route('/status')
 def status(ws):
     while True:
@@ -179,8 +179,8 @@ def start_recording():
         print("Running ...")
         button.wait_for_press()
         time.sleep(1)
-        status_queue.put('{"status": "Recording"}')
-        frames = record(UNTIL_STOP, button)
+
+        frames = record(UNTIL_STOP, status_queue, button)
         status_queue.put('{"status": "Processing"}')
         track = str(time.time())
         save_wav(f'{run_dir}{track}', frames)
@@ -244,6 +244,9 @@ def crossDiarizationSpeech(track):
                 counterDiarization += 1
                 continue
             else:
+                if phrase == "":
+                    counterDiarization += 1
+                    continue
                 timestampPhrase = timestamp + endPeriodPointer
                 doc = [phrase, timestampPhrase]
                 listPeriods[indexUser].append(doc)
