@@ -2,31 +2,34 @@ let socket = new WebSocket('ws://localhost:5000/status');
 
 socket.onmessage = function (event){
     console.log(event.data);
-    let data = JSON.parse(event.data)
-    if(data['status'] === 'update'){
-        for(const update of data['update']){
-            if($('#current_user').children()[0] === undefined){
-                $('#' + update['user']).css('background-color', 'lightsteelblue')
-            }
-            else{
-                let current_user = $('#current_user').find('.user').attr('id')
-                if(current_user === update['user']){
-
-                    for(phrase of update['phrases']){
-                        $(
-                            '<li>' +
-                                '<div class="phrase">' +
-                                    '<span><b>Timestamp: </b>' + phrase[1] + '</span>' +
-                                    '<br>\n' +
-                                        '<span><b>Text: </b>' + phrase[0] + '</span>' +
-                                '</div>' +
-                            '</li>' +
-                            '<hr>'
-                        ).appendTo($('#phrases').children()[0])
+     let data = JSON.parse(event.data)
+        if(data['status'] === 'update'){
+            for(const update of data['update']){
+                if($('#current_user').children()[0] === undefined){
+                    $('#' + update['user']).css('background-color', 'lightsteelblue')
+                }
+                else{
+                    let current_user = $('#current_user').find('.user').attr('id')
+                    if(current_user === update['user']){
+                        if($('#phrases').children()[0].toString().includes('Heading')){
+                            $('#phrases').html("<ul></ul>")
+                        }
+                        for(const phrase of update['phrases']){
+                            $(
+                                '<li>' +
+                                    '<div class="phrase">' +
+                                        '<span><b>Timestamp: </b>' + phrase[1] + '</span>' +
+                                        '<br>\n' +
+                                            '<span><b>Text: </b>' + phrase[0] + '</span>' +
+                                    '</div>' +
+                                '</li>' +
+                                '<hr>'
+                            ).appendTo($('#phrases').children()[0])
+                        }
+                        $('#current_user').find('.user').find('.last_activity').text(update['phrases'].at(-1)[1].toString().substring(0,10))
                     }
                 }
             }
-        }
         $('#status').text("Ready")
     }
     else{
