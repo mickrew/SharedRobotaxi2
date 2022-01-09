@@ -196,7 +196,7 @@ def start_recording():
     status_queue.put('{"status": "Processing"}')
     track = str(time.time())
     save_wav(f'{run_dir}{track}', frames)
-    result = crossDiarizationSpeech(track)
+    result = crossDiarizationSpeech('1641740436.8225098')
 
     print(result)
 
@@ -212,6 +212,7 @@ def start_recording():
         msg['update'].append({'user': user, 'phrases': phrases})
 
     status_queue.put(json.dumps(msg))
+
     return "", 200
 
 
@@ -256,10 +257,11 @@ def crossDiarizationSpeech(track):
                 phrase = phrase + str(word['word']) + " "
                 print(phrase)
             elif float(word['start']) >= endPeriodPointer:
+                counterWords-=1
                 break
 
         if counterDiarization < sizeDiarization - 1:
-            if res[counterDiarization + 1]['label'] == label:
+            if (res[counterDiarization + 1]['label'] == label):
                 counterDiarization += 1
                 continue
             else:
@@ -271,6 +273,15 @@ def crossDiarizationSpeech(track):
                 listPeriods[indexUser].append(doc)
                 phrase = ""
                 counterDiarization += 1
+        else:
+            if phrase == "":
+                counterDiarization += 1
+                continue
+            timestampPhrase = timestamp + endPeriodPointer
+            doc = [phrase, timestampPhrase]
+            listPeriods[indexUser].append(doc)
+            phrase = ""
+            counterDiarization += 1
 
     listPeriods.append(listUsers)
 
