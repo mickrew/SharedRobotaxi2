@@ -23,7 +23,7 @@ run_dir = 'run/'
 split_dir = run_dir + 'split/'
 base_user_dir = 'resources/users/'
 
-button = Button(pin=2)
+#button = Button(pin=2)
 
 
 @app.errorhandler(404)
@@ -173,17 +173,34 @@ def status(ws):
         status = status_queue.get()
         ws.send(status)
 
+@app.route('/start')
+def start_elaboration():
+    status_queue.put('{"status": "Processing"}')
+    result = crossDiarizationSpeech('1641719348')
+
+    mongo.insertTranscription(result)
+
+    msg = {'status': 'update', 'update': []}
+    users = result[-1]
+    for i, user in enumerate(users):
+        phrases = sorted(result[i], key=itemgetter(1))
+        for j in range(0, len(phrases)):
+            phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
+        msg['update'].append({'user': user, 'phrases': phrases})
+
+    status_queue.put(json.dumps(msg))
+    return ("" , 200)
 
 def start_recording():
     while True:
         print("Running ...")
-        button.wait_for_press()
+        #button.wait_for_press()
         time.sleep(1)
         status_queue.put('{"status": "Recording"}')
-        frames = record(UNTIL_STOP, button)
+        #frames = record(UNTIL_STOP, button)
         status_queue.put('{"status": "Processing"}')
         track = str(time.time())
-        save_wav(f'{run_dir}{track}', frames)
+        #save_wav(f'{run_dir}{track}', frames)
         result = crossDiarizationSpeech(track)
 
         msg = {'status': 'update', 'update': []}
@@ -244,6 +261,9 @@ def crossDiarizationSpeech(track):
                 counterDiarization += 1
                 continue
             else:
+                if (phrase == ""):
+                    counterDiarization += 1
+                    continue
                 timestampPhrase = timestamp + endPeriodPointer
                 doc = [phrase, timestampPhrase]
                 listPeriods[indexUser].append(doc)
@@ -254,5 +274,5 @@ def crossDiarizationSpeech(track):
 
 
 if __name__ == '__main__':
-    threading.Thread(target=start_recording).start()
+    #threading.Thread(target=start_recording).start()
     app.run(host='0.0.0.0')

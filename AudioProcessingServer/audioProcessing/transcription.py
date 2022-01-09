@@ -9,9 +9,9 @@ model_dir = 'root/resources/model/'
 test_dir = 'root/test/'
 run_dir = 'root/run/'
 
-def google_speech2text(filename):
+def google_speech2text(track):
     r = sr.Recognizer()
-    with sr.AudioFile(filename) as source:
+    with sr.AudioFile(f'{run_dir}split/{track}.wav') as source:
         try:
             # calibrates the recognizer to the noise level of the audio
             r.adjust_for_ambient_noise(source, 1)
@@ -21,7 +21,7 @@ def google_speech2text(filename):
             text = r.recognize_google(audio_data, language="it-IT")
             print(text)
         except Exception as e:
-            print("Error ! \t" + filename.split('/')[3])
+            print(track)
 
 
 def local_speech2text(track):

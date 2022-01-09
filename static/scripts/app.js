@@ -39,6 +39,7 @@ socket.onclose = function (){console.log("ws closed")}
 $(document).ready(function(){
     $('#show_user').click(show_users)
     $('.user').click(show_detail)
+    $('#start').click(start_elaboration)
 
 });
 
@@ -52,6 +53,19 @@ function show_users(){
             $('#content').html(data)
             $('.user').click(show_detail)
         },
+        error: function (data){
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
+        }
+    });
+}
+
+function start_elaboration(){
+    $.ajax({
+        url: '/start',
+        type: 'GET',
+        processData: false,
+        contentType: false,
         error: function (data){
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
