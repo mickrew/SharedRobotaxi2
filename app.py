@@ -12,7 +12,6 @@ from flask_sock import Sock
 from audioCapture.record import record, record_samples
 from audioCapture.utils import save_wav
 from audioCapture.record import UNTIL_STOP
-from gpiozero import Button
 from remoteAudioProcessing.rpc import audio_processing_pipeline, update_sr_model
 from database import MongoDBConnection as mongo
 
@@ -23,7 +22,13 @@ run_dir = 'run/'
 split_dir = run_dir + 'split/'
 base_user_dir = 'resources/users/'
 
-#button = Button(pin=2)
+
+class StopRec:
+    stop = False
+
+
+stop_rec = StopRec()
+status_queue = queue.Queue()
 
 
 @app.errorhandler(404)
@@ -87,10 +92,6 @@ def upload_samples():
     fname = request.form.get('fname').capitalize()
     lname = request.form.get('lname').capitalize()
 
-    msg, code = register(fname, lname)
-    if code != 200:
-        return msg, code
-
     samples = []
     for file in request.files.lists():
         sample = file[1][0]
@@ -105,11 +106,16 @@ def upload_samples():
         msg = 'Required at least 5 audio samples'
         return jsonify({'msg': msg}), 406
 
+    msg, code = register(fname, lname)
+    if code != 200:
+        return msg, code
+
     user_dir = f'{base_user_dir}{fname}_{lname}'
     for i, sample in enumerate(samples):
         sample.save(user_dir + '/' + 'sample' + str(i) + ".wav")
 
     status_queue.put('{"status": "Updating model"}')
+
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
     msg = "Sample uploaded !"
@@ -137,8 +143,8 @@ def record_sample():
     msg, code = register(fname, lname)
     if code != 200:
         return msg, code
-    status_queue.put('{"status": "Recording"}')
-    record_samples(fname + '_' + lname)
+
+    record_samples(fname + '_' + lname, status_queue)
     status_queue.put('{"status": "Updating model"}')
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
@@ -164,60 +170,54 @@ def get_detail():
     return render_template('details.html', detail=detail)
 
 
-status_queue = queue.Queue()
-
-
 @sock.route('/status')
 def status(ws):
     while True:
         status = status_queue.get()
+        if status == 'hello':
+            return
+        print(threading.currentThread(), status)
         ws.send(status)
 
-@app.route('/start')
-def start_elaboration():
-    status_queue.put('{"status": "Processing"}')
-    result = crossDiarizationSpeech('1641719348')
 
+@app.route('/stop_recording')
+def stop_recording():
+    global stop_rec
+    stop_rec.stop = True
+    return "", 200
+
+
+@app.route('/start_recording')
+def start_recording():
+    global stop_rec
+    stop_rec.stop = False
+
+    frames = record(UNTIL_STOP, status_queue, stop_rec)
+    status_queue.put('{"status": "Processing"}')
+    track = str(time.time())
+    save_wav(f'{run_dir}{track}', frames)
+    result = crossDiarizationSpeech(track)
+
+    print(result)
+
+    result1 = result.copy()
     mongo.insertTranscription(result)
 
     msg = {'status': 'update', 'update': []}
-    users = result[-1]
+    users = result1[-1]
     for i, user in enumerate(users):
-        phrases = sorted(result[i], key=itemgetter(1))
+        phrases = sorted(result1[i], key=itemgetter(1))
         for j in range(0, len(phrases)):
             phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
         msg['update'].append({'user': user, 'phrases': phrases})
 
     status_queue.put(json.dumps(msg))
-    return ("" , 200)
-
-def start_recording():
-    while True:
-        print("Running ...")
-        #button.wait_for_press()
-        time.sleep(1)
-        status_queue.put('{"status": "Recording"}')
-        #frames = record(UNTIL_STOP, button)
-        status_queue.put('{"status": "Processing"}')
-        track = str(time.time())
-        #save_wav(f'{run_dir}{track}', frames)
-        result = crossDiarizationSpeech(track)
-
-        msg = {'status': 'update', 'update': []}
-        users = result[-1]
-        for i, user in enumerate(users):
-            phrases = sorted(result[i], key=itemgetter(1))
-            for j in range(0, len(phrases)):
-                phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
-            msg['update'].append({'user': user, 'phrases': phrases})
-
-        mongo.insertTranscription(result)
-
-        status_queue.put(json.dumps(msg))
+    return "", 200
 
 
 def crossDiarizationSpeech(track):
     result = audio_processing_pipeline(track, 'dihard', 'model.out')
+
     res = result['diarization']
     transcription = result['text']
 
@@ -254,14 +254,16 @@ def crossDiarizationSpeech(track):
             counterWords += 1
             if float(word['start']) <= endPeriodPointer and float(word['start']) >= startPeriodPointer:
                 phrase = phrase + str(word['word']) + " "
+                print(phrase)
             elif float(word['start']) >= endPeriodPointer:
                 break
+
         if counterDiarization < sizeDiarization - 1:
             if res[counterDiarization + 1]['label'] == label:
                 counterDiarization += 1
                 continue
             else:
-                if (phrase == ""):
+                if phrase == "":
                     counterDiarization += 1
                     continue
                 timestampPhrase = timestamp + endPeriodPointer
@@ -269,10 +271,11 @@ def crossDiarizationSpeech(track):
                 listPeriods[indexUser].append(doc)
                 phrase = ""
                 counterDiarization += 1
+
     listPeriods.append(listUsers)
+
     return listPeriods
 
 
 if __name__ == '__main__':
-    #threading.Thread(target=start_recording).start()
     app.run(host='0.0.0.0')

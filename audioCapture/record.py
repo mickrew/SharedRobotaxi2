@@ -4,11 +4,11 @@ from .utils import save_wav
 
 sample_record_duration = 60
 UNTIL_STOP = -1
+audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
 
-def record(duration, button=None):
+def record(duration, status_queue, stop_rec=None):
     # create pyaudio stream
-    audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
     stream = audio.open(format=sample_format,
                         rate=sample_rate,
@@ -21,8 +21,9 @@ def record(duration, button=None):
     print("Start recording")
 
     frames = []
+    status_queue.put('{"status": "Recording"}')
     if duration == UNTIL_STOP:
-        while not button.is_pressed:
+        while not stop_rec.stop:
             data = stream.read(chunk_size, exception_on_overflow=False)
             frames.append(data)
     else:
@@ -39,8 +40,8 @@ def record(duration, button=None):
     return frames
 
 
-def record_samples(user):
-    frames = record(sample_record_duration)
+def record_samples(user, status_queue):
+    frames = record(sample_record_duration, status_queue)
 
     n_samples = 10
     step = int(len(frames) / n_samples)
