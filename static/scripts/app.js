@@ -1,4 +1,4 @@
-let socket = new WebSocket('ws://localhost:5000/status');
+let socket = new WebSocket('ws://raspberrypi:5000/status');
 
 socket.onmessage = function (event){
     console.log(event.data);
