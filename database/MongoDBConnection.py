@@ -10,7 +10,7 @@ connection_url = "mongodb+srv://Industrial:Application@sharedrobotaxi.gnvax.mong
 def insertUser(user):
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
-    collection = db.Users
+    collection = db.Test
     doc = {"fname": user[0], "lname": user[1]}
     collection.insert_one(doc)
 
@@ -23,7 +23,7 @@ def insertTranscription(docList):
 
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
-    collection = db.Users
+    collection = db.Test
     counterUsers = 0
 
     for elem in docList:
@@ -41,7 +41,7 @@ def loadAllUsers():
     listUsers = []
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
-    collection = db.Users
+    collection = db.Test
     cursor = collection.find({})
     for document in cursor:
         fname = document['fname']
@@ -59,7 +59,7 @@ def loadAllUsers():
 def getConversations(user):
     client = pymongo.MongoClient(connection_url)
     db = client.SharedRobotaxi
-    collection = db.Users
+    collection = db.Test
 
     try:
         document = collection.find_one({"fname": user[0], "lname": user[1]})
