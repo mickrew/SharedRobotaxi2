@@ -176,7 +176,6 @@ def status(ws):
 
 def start_recording():
     while True:
-        print("Running ...")
         button.wait_for_press()
         time.sleep(1)
 
@@ -186,15 +185,16 @@ def start_recording():
         save_wav(f'{run_dir}{track}', frames)
         result = crossDiarizationSpeech(track)
 
+        result_copy = result.copy()
+        mongo.insertTranscription(result)
+
         msg = {'status': 'update', 'update': []}
-        users = result[-1]
+        users = result_copy[-1]
         for i, user in enumerate(users):
-            phrases = sorted(result[i], key=itemgetter(1))
+            phrases = sorted(result_copy[i], key=itemgetter(1))
             for j in range(0, len(phrases)):
                 phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
             msg['update'].append({'user': user, 'phrases': phrases})
-
-        mongo.insertTranscription(result)
 
         status_queue.put(json.dumps(msg))
 
@@ -238,7 +238,6 @@ def crossDiarizationSpeech(track):
             counterWords += 1
             if float(word['start']) <= endPeriodPointer and float(word['start']) >= startPeriodPointer:
                 phrase = phrase + str(word['word']) + " "
-                print(phrase)
             elif float(word['start']) >= endPeriodPointer:
                 counterWords-=1
                 break
