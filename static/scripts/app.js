@@ -34,7 +34,6 @@ $(document).ready(function(){
                     }
                 }
             }
-            $('#status').text("Ready")
         }
         else{
             $('#status').text(JSON.parse(event.data)['status'])
@@ -95,6 +94,7 @@ function start(){
         processData: false,
         contentType: false,
         success: function (data) {
+            $('#status').text("Ready")
         },
         error: function (data){
             $('#status').text("Ready")

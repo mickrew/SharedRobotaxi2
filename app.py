@@ -7,9 +7,7 @@ from operator import itemgetter
 from flask import Flask, render_template, request, jsonify
 import json
 from flask_sock import Sock
-from audioCapture.record import record, record_samples
-from audioCapture.utils import save_wav
-from audioCapture.record import UNTIL_STOP
+import audioCapture
 from remoteAudioProcessing.rpc import audio_processing_pipeline, update_sr_model
 from database import MongoDBConnection as mongo
 
@@ -142,7 +140,7 @@ def record_sample():
     if code != 200:
         return msg, code
 
-    record_samples(fname + '_' + lname, websocket)
+    audioCapture.record_samples(fname + '_' + lname, websocket)
     websocket.send('{"status": "Updating model"}')
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
@@ -183,22 +181,9 @@ def upload_track():
 
     websocket.send('{"status": "Processing"}')
 
-    msg = {'status': 'update', 'update': []}
-    try:
-        result = crossDiarizationSpeech(track_name)
-        result_copy = result.copy()
-        mongo.insertTranscription(result)
+    update = elaborate_audio(track_name)
 
-        users = result_copy[-1]
-        for i, user in enumerate(users):
-            phrases = sorted(result_copy[i], key=itemgetter(1))
-            for j in range(0, len(phrases)):
-                phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
-            msg['update'].append({'user': user, 'phrases': phrases})
-    except Exception:
-        pass
-
-    websocket.send(json.dumps(msg))
+    websocket.send(json.dumps(update))
 
     return "", 200
 
@@ -222,12 +207,21 @@ def start_recording():
     global stop_rec
     stop_rec.stop = False
 
-    frames = record(UNTIL_STOP, websocket, stop_rec)
-    websocket.send('{"status": "Processing"}')
+    frames = audioCapture.record(audioCapture.UNTIL_STOP, websocket, stop_rec)
     track = str(time.time())
-    save_wav(f'{run_dir}{track}', frames)
+    audioCapture.save_wav(f'{run_dir}{track}', frames)
 
-    msg = {'status': 'update', 'update': []}
+    websocket.send('{"status": "Processing"}')
+
+    update = elaborate_audio(track)
+
+    websocket.send(json.dumps(update))
+
+    return "", 200
+
+
+def elaborate_audio(track):
+    update = {'status': 'update', 'update': []}
     try:
         result = crossDiarizationSpeech(track)
         result_copy = result.copy()
@@ -238,13 +232,11 @@ def start_recording():
             phrases = sorted(result_copy[i], key=itemgetter(1))
             for j in range(0, len(phrases)):
                 phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
-            msg['update'].append({'user': user, 'phrases': phrases})
+            update['update'].append({'user': user, 'phrases': phrases})
     except Exception:
         pass
 
-    websocket.send(json.dumps(msg))
-
-    return "", 200
+    return update
 
 
 def crossDiarizationSpeech(track):
