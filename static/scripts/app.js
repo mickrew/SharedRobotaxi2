@@ -41,7 +41,7 @@ $(document).ready(function(){
         }
     }
     socket.onerror = function (event){console.log(event)}
-    socket.onclose = function (){console.log("ws closed")}
+    socket.onclose = function (){console.log("ws closed");}
     socket.onopen = function (){console.log('ws opened');}
 
     $('#show_user').click(show_users)

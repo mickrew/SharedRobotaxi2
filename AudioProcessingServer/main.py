@@ -8,7 +8,6 @@ from pyftpdlib.authorizers import DummyAuthorizer
 
 from audioProcessing.audioProcessing_interface import *
 
-from AudioProcessingServer.audioProcessing.transcription import google_speech2text
 
 authorizer = DummyAuthorizer()
 authorizer.add_anonymous(os.getcwd() + '/root', perm='elradfmwMT')
@@ -28,4 +27,3 @@ rpc_server.register_function(update_model, 'update_model')
 if __name__ == '__main__':
     threading.Thread(target=ftp_server.serve_forever).start()
     threading.Thread(target=rpc_server.serve_forever).start()
-    #google_speech2text('1641637494')

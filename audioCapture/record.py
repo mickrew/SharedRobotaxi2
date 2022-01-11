@@ -7,7 +7,7 @@ UNTIL_STOP = -1
 audio = pyaudio.PyAudio()  # create pyaudio instantiation
 
 
-def record(duration, status_queue, stop_rec=None):
+def record(duration, websocket, stop_rec=None):
     # create pyaudio stream
 
     stream = audio.open(format=sample_format,
@@ -21,7 +21,7 @@ def record(duration, status_queue, stop_rec=None):
     print("Start recording")
 
     frames = []
-    status_queue.put('{"status": "Recording"}')
+    websocket.send('{"status": "Recording"}')
     if duration == UNTIL_STOP:
         while not stop_rec.stop:
             data = stream.read(chunk_size, exception_on_overflow=False)
@@ -40,8 +40,8 @@ def record(duration, status_queue, stop_rec=None):
     return frames
 
 
-def record_samples(user, status_queue):
-    frames = record(sample_record_duration, status_queue)
+def record_samples(user, websocket):
+    frames = record(sample_record_duration, websocket)
 
     n_samples = 10
     step = int(len(frames) / n_samples)

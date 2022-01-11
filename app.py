@@ -1,7 +1,5 @@
 import os
 import pathlib
-import queue
-import threading
 import time
 from datetime import datetime
 from operator import itemgetter
@@ -28,7 +26,7 @@ class StopRec:
 
 
 stop_rec = StopRec()
-status_queue = queue.Queue()
+websocket = None
 
 
 @app.errorhandler(404)
@@ -114,7 +112,7 @@ def upload_samples():
     for i, sample in enumerate(samples):
         sample.save(user_dir + '/' + 'sample' + str(i) + ".wav")
 
-    status_queue.put('{"status": "Updating model"}')
+    websocket.send('{"status": "Updating model"}')
 
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
@@ -144,8 +142,8 @@ def record_sample():
     if code != 200:
         return msg, code
 
-    record_samples(fname + '_' + lname, status_queue)
-    status_queue.put('{"status": "Updating model"}')
+    record_samples(fname + '_' + lname, websocket)
+    websocket.send('{"status": "Updating model"}')
     update_sr_model(f'{fname}_{lname}', 'model.out')
     mongo.insertUser([fname, lname])
     msg = "Sample recorded !"
@@ -172,12 +170,9 @@ def get_detail():
 
 @sock.route('/status')
 def status(ws):
-    while True:
-        status = status_queue.get()
-        if status == 'hello':
-            return
-        print(threading.currentThread(), status)
-        ws.send(status)
+    global websocket
+    websocket = ws
+    print(ws.receive())
 
 
 @app.route('/stop_recording')
@@ -192,26 +187,27 @@ def start_recording():
     global stop_rec
     stop_rec.stop = False
 
-    frames = record(UNTIL_STOP, status_queue, stop_rec)
-    status_queue.put('{"status": "Processing"}')
+    frames = record(UNTIL_STOP, websocket, stop_rec)
+    websocket.send('{"status": "Processing"}')
     track = str(time.time())
     save_wav(f'{run_dir}{track}', frames)
-    result = crossDiarizationSpeech('1641740436.8225098')
-
-    print(result)
-
-    result1 = result.copy()
-    mongo.insertTranscription(result)
 
     msg = {'status': 'update', 'update': []}
-    users = result1[-1]
-    for i, user in enumerate(users):
-        phrases = sorted(result1[i], key=itemgetter(1))
-        for j in range(0, len(phrases)):
-            phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
-        msg['update'].append({'user': user, 'phrases': phrases})
+    try:
+        result = crossDiarizationSpeech(track)
+        result_copy = result.copy()
+        mongo.insertTranscription(result)
 
-    status_queue.put(json.dumps(msg))
+        users = result_copy[-1]
+        for i, user in enumerate(users):
+            phrases = sorted(result_copy[i], key=itemgetter(1))
+            for j in range(0, len(phrases)):
+                phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
+            msg['update'].append({'user': user, 'phrases': phrases})
+    except Exception:
+        pass
+
+    websocket.send(json.dumps(msg))
 
     return "", 200
 
@@ -255,9 +251,8 @@ def crossDiarizationSpeech(track):
             counterWords += 1
             if float(word['start']) <= endPeriodPointer and float(word['start']) >= startPeriodPointer:
                 phrase = phrase + str(word['word']) + " "
-                print(phrase)
             elif float(word['start']) >= endPeriodPointer:
-                counterWords-=1
+                counterWords -= 1
                 break
 
         if counterDiarization < sizeDiarization - 1:
