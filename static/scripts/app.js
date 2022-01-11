@@ -42,6 +42,7 @@ socket.onmessage = function (event){
 socket.onerror = function (event){console.log(event)}
 socket.onclose = function (){console.log("ws closed")}
 socket.onclose = function (){console.log("ws opened")}
+
 $(document).ready(function(){
     $('#show_user').click(show_users)
     $('.user').click(show_detail)
