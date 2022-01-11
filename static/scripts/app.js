@@ -46,8 +46,9 @@ $(document).ready(function(){
 
     $('#show_user').click(show_users)
     $('#app').click(start)
+    $('#upload_track').click(select_track)
+    $('#track_picker').change(upload_track)
     $('.user').click(show_detail)
-
 });
 
 function show_users(){
@@ -122,4 +123,30 @@ function stop(){
     $('#app').off('click',stop)
     $('#app').text('Start')
     $('#app').click(start)
+}
+
+function select_track(){
+    $('#track_picker').click();
+}
+
+function upload_track(){
+    let formData = new FormData();
+    let track = $("#track_picker")[0].files[0]
+    formData.append(track.name, track)
+
+    $.ajax({
+        url: 'upload_track',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+             $('#status').text("Ready")
+        },
+        error: function (data){
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
+        }
+    });
+    $('#status').text("Uploading files")
 }

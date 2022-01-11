@@ -168,6 +168,41 @@ def get_detail():
     return render_template('details.html', detail=detail)
 
 
+@app.route('/upload_track', methods=['POST'])
+def upload_track():
+
+    for file in request.files.lists():
+        track = file[1][0]
+
+    if track.content_type != "audio/wav":
+        msg = 'Only wave files allowed'
+        return jsonify({'msg': msg}), 406
+
+    track_name = str(time.time())
+    track.save(f'{run_dir}{track_name}.wav')
+
+    websocket.send('{"status": "Processing"}')
+
+    msg = {'status': 'update', 'update': []}
+    try:
+        result = crossDiarizationSpeech(track_name)
+        result_copy = result.copy()
+        mongo.insertTranscription(result)
+
+        users = result_copy[-1]
+        for i, user in enumerate(users):
+            phrases = sorted(result_copy[i], key=itemgetter(1))
+            for j in range(0, len(phrases)):
+                phrases[j][1] = datetime.fromtimestamp(phrases[j][1]).strftime("%Y-%m-%d %H:%M:%S")
+            msg['update'].append({'user': user, 'phrases': phrases})
+    except Exception:
+        pass
+
+    websocket.send(json.dumps(msg))
+
+    return "", 200
+
+
 @sock.route('/status')
 def status(ws):
     global websocket
