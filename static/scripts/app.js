@@ -34,15 +34,14 @@ $(document).ready(function(){
                     }
                 }
             }
-        $('#status').text("Ready")
     }
     else{
         $('#status').text(JSON.parse(event.data)['status'])
     }
 }
-socket.onerror = function (event){console.log(event)}
-socket.onclose = function (){console.log("ws closed")}
-socket.onclose = function (){console.log("ws opened")}
+    socket.onerror = function (event){console.log(event)}
+    socket.onclose = function (){console.log("ws closed")}
+    socket.onclose = function (){console.log("ws opened")}
 
     $('#show_user').click(show_users)
     $('.user').click(show_detail)
