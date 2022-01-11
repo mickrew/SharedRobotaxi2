@@ -1,6 +1,7 @@
 let socket = new WebSocket('ws://raspberrypi:5000/status');
 
-socket.onmessage = function (event){
+$(document).ready(function(){
+    socket.onmessage = function (event){
     console.log(event.data);
      let data = JSON.parse(event.data)
         if(data['status'] === 'update'){
@@ -43,10 +44,10 @@ socket.onerror = function (event){console.log(event)}
 socket.onclose = function (){console.log("ws closed")}
 socket.onclose = function (){console.log("ws opened")}
 
-$(document).ready(function(){
     $('#show_user').click(show_users)
     $('.user').click(show_detail)
-
+    $('#upload_track').click(select_track)
+    $('#track_picker').change(upload_track);
 });
 
 function show_users(){
@@ -86,65 +87,28 @@ function show_detail(){
     });
 }
 
-/*let recorder;
-let audio_stream;
-
-function startRecording() {
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (stream) {
-            audio_stream = stream;
-            recorder = new MediaRecorder(stream);
-
-            recorder.ondataavailable = function (e) {
-                const blobDataInWebaFormat = e.data; // .weba = webaudio; subset of webm
-                const wavFile = new Blob([blobDataInWebaFormat], { type : 'audio/wav; codecs=ms_pcm' });
-
-                let formData = new FormData();
-                formData.append("track", wavFile)
-                formData.append("fname", "pippo");
-                formData.append("lname", "pippo");
-                $.ajax({
-                    url: "/enroll",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                });
-            };
-            console.log("Record started")
-            recorder.start();
-        });
+function select_track(){
+    $('#track_picker').click();
 }
 
-function stopRecording() {
-    recorder.stop();
-    audio_stream.getAudioTracks()[0].stop();
+function upload_track(){
+    let formData = new FormData();
+    let track = $("#track_picker")[0].files[0]
+    formData.append(track.name, track)
 
-    console.log("Record stopped");
-}
-*/
-
-    /*let socket = new WebSocket('ws://localhost:5000/record_samples');
-
-    socket.onerror = function (event){console.log(event)}
-    socket.onmessage = function (event){
-        let response = JSON.parse(event.data)
-        switch (response['action']){
-            case 'start':
-                console.log(response['action']);
-                countdown = setInterval(countdown_handler, 1000)
-
-                break;
-            case 'stop':
-                 alert("User registered successfully !");
-                window.location.href = '/'
-                break;
-            case 'already enrolled':
-                alert('Error: user already enrolled')
+    $.ajax({
+        url: 'upload_track',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+             $('#status').text("Ready")
+        },
+        error: function (data){
+            $('#status').text("Ready")
+            alert("Error: " + data['responseJSON']['msg']);
         }
-    }
-    socket.onopen = function (){
-        socket.send(JSON.stringify({fname: $('#fname').val(), lname: $('#lname').val(), command:'start'}))
-    }
-    socket.onclose = function (){console.log("ws closed")}*/
+    });
+    $('#status').text("Uploading files")
+}

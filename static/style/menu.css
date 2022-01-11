@@ -45,3 +45,6 @@
     text-align:center
 }
 
+#track_picker{
+    display: none;
+}
