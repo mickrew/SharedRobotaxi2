@@ -20,7 +20,8 @@ run_dir = 'run/'
 split_dir = run_dir + 'split/'
 base_user_dir = 'resources/users/'
 
-button = Button(pin=2)
+
+button = None
 websocket = None
 
 
@@ -301,5 +302,6 @@ def crossDiarizationSpeech(track):
 
 
 if __name__ == '__main__':
+    button = Button(pin=2)
     threading.Thread(target=start_recording).start()
     app.run(host='0.0.0.0')

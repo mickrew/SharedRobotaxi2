@@ -45,6 +45,17 @@
     text-align:center
 }
 
+.blink {
+    color:red;
+    animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
 #track_picker{
     display: none;
 }

@@ -36,6 +36,7 @@ $(document).ready(function(){
             }
     }
     else{
+        set_blink(JSON.parse(event.data)['status'] !== 'Ready')
         $('#status').text(JSON.parse(event.data)['status'])
     }
 }
@@ -49,6 +50,15 @@ $(document).ready(function(){
     $('#track_picker').change(upload_track);
 });
 
+function set_blink(blink){
+    if(blink){
+         $('#status').addClass('blink')
+    }
+    else {
+        $('#status').removeClass('blink')
+    }
+}
+
 function show_users(){
     $.ajax({
         url: '/user_list',
@@ -60,6 +70,7 @@ function show_users(){
             $('.user').click(show_detail)
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -80,6 +91,7 @@ function show_detail(){
             $('#content').html(data)
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -102,12 +114,15 @@ function upload_track(){
         processData: false,
         contentType: false,
         success: function (data) {
+             set_blink(false)
              $('#status').text("Ready")
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
     });
+    set_blink(true)
     $('#status').text("Uploading files")
 }

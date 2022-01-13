@@ -2,7 +2,8 @@ import json
 
 import pyaudio
 
-import app
+from app import elaborate_audio
+from app import run_dir
 from .param import sample_format, sample_rate, channel, chunk_size, dev_index
 from .utils import save_wav
 
@@ -64,9 +65,9 @@ def record_samples(user, websocket):
 
 
 def worker(track, frames, websocket):
-    save_wav(f'{app.run_dir}{track}', frames)
+    save_wav(f'{run_dir}{track}', frames)
     try:
-        update = app.elaborate_audio(track)
+        update = elaborate_audio(track)
         websocket.send(json.dumps(update))
     except Exception as e:
         pass
