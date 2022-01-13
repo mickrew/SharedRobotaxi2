@@ -37,6 +37,7 @@ $(document).ready(function(){
         }
         else{
             $('#status').text(JSON.parse(event.data)['status'])
+            set_blink(true)
         }
     }
     socket.onerror = function (event){console.log(event)}
@@ -50,6 +51,15 @@ $(document).ready(function(){
     $('.user').click(show_detail)
 });
 
+function set_blink(blink){
+    if(blink){
+         $('#status').addClass('blink')
+    }
+    else {
+        $('#status').removeClass('blink')
+    }
+}
+
 function show_users(){
     $.ajax({
         url: '/user_list',
@@ -62,6 +72,7 @@ function show_users(){
         },
         error: function (data){
             $('#status').text("Ready")
+            set_blink(false)
             alert("Error: " + data['responseJSON']['msg']);
         }
     });
@@ -81,6 +92,7 @@ function show_detail(){
             $('#content').html(data)
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -94,9 +106,11 @@ function start(){
         processData: false,
         contentType: false,
         success: function (data) {
+            set_blink(false)
             $('#status').text("Ready")
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -115,6 +129,7 @@ function stop(){
         success: function (data) {
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -141,9 +156,11 @@ function upload_track(){
         processData: false,
         contentType: false,
         success: function (data) {
+            set_blink(false)
              $('#status').text("Ready")
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }

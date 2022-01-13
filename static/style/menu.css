@@ -42,7 +42,19 @@
     background: lightgray;
     font-size: 22px;
     font-weight: bold;
-    text-align:center
+    text-align:center;
+}
+
+.blink {
+    color:red;
+    animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+
+    }
 }
 
 #track_picker{

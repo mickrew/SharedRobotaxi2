@@ -34,15 +34,18 @@ function upload_samples(){
         processData: false,
         contentType: false,
         success: function (data) {
+            set_blink(false)
              $('#status').text("Ready")
             addUser($('#fname').val(),$('#lname').val());
             alert("User registered successfully !");
         },
         error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
     });
+    set_blink(true)
     $('#status').text("Uploading files")
 }
 
@@ -69,6 +72,7 @@ function get_text(){
             $('#start_recording').click(start_recording);
         },
                 error: function (data){
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }
@@ -90,11 +94,13 @@ function start_recording(){
         data: formData,
         success: function (data) {
              show_users()
+             set_blink(false)
              $('#status').text("Ready")
              alert("User registered successfully !");
         },
         error: function (data){
             clearInterval(countdown)
+            set_blink(false)
             $('#status').text("Ready")
             alert("Error: " + data['responseJSON']['msg']);
         }

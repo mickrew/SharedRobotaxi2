@@ -28,7 +28,7 @@ def record(duration, websocket, stop_rec=None):
     print("Start recording")
 
     frames = []
-    start = time.time()
+    #start = time.time()
     websocket.send('{"status": "Recording"}')
     if duration == UNTIL_STOP:
         while not stop_rec.stop:
